@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>视频平台</title>
+  <link rel="stylesheet" href="./css/style.css" />
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: rgb(36, 49, 84);
+      color: #dadada;
+      overflow: hidden;
+    }
+
+    .header {
+      width: 100%;
+      height: 50px;
+      line-height: 50px;
+      padding: 0 30px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .content {
+      width: 100%;
+      height: calc(100% - 50px);
+    }
+
+    .videoView {
+      width: calc(100% - 400px);
+      height: 100%;
+      float: left;
+      overflow: hidden;
+      border-top: 2px solid #1b2b50;
+    }
+
+    #videoTool {
+      height: 80px;
+      overflow: hidden;
+      line-height: 50px;
+      margin: 0 30px;
+      box-sizing: border-box;
+    }
+
+    #video,
+    #video1 {
+      display: inline-block;
+      width: calc(50% - 80px);
+      height: calc(100% - 200px);
+      background-color: rgba(0, 0, 0, 0.5);
+      margin: 0 30px;
+      border-radius: 5px;
+      /* box-shadow: 16px 14px 20px 0px #01094a; */
+      box-shadow: 20px 20px 20px 0px #000000;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      float: left;
+      background-color: rgb(112, 112, 112);
+    }
+
+    .IPCList {
+      width: 400px;
+      height: 100%;
+      float: left;
+      background-color: #1a2544;
+      overflow: hidden;
+    }
+
+    #videoTool {
+      position: relative;
+      padding-top: 15px;
+    }
+
+    #ipcListUl {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    #videoTool ul li {
+      display: inline-block;
+      padding: 2px 12px 2px 30px;
+      border: 1px solid #9098b2;
+      border-radius: 5px;
+      height: 25px;
+      line-height: 18px;
+      margin-right: 10px;
+      background-image: url('https://www.jlrbjb.com/static/images/search.png');
+      background-repeat: no-repeat;
+      background-position: 10px center;
+      background-size: 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    #videoTool ul.rightUl li {
+      padding-right: 40px;
+    }
+
+    #videoTool ul.rightUl li a {
+      border-left: 1px solid #a2b7ef;
+      padding-left: 10px;
+    }
+
+    #videoTool ul.leftUl li.on {
+      background-color: #1890ff;
+    }
+
+    #videoTool ul.rightUl li.on {
+      background-color: #7990de;
+    }
+
+    #videoTool ul li a {
+      color: #c6d5ef;
+    }
+
+    #videoTool .rightUl {
+      position: absolute;
+      right: 10px;
+      top: 15px;
+    }
+
+    .IPCList ul li {
+      width: 100%;
+      overflow: hidden;
+      padding: 10px 35px;
+      border-bottom: 1px solid #29324f;
+    }
+
+    .IPCList ul li>div {
+      float: left;
+      font-size: 12px;
+    }
+
+    .IPCList ul li>div img {
+      width: 50px;
+      margin-right: 40px;
+    }
+
+    .timeIput {
+      background: rgba(0, 0, 0, 0.02);
+      border: none;
+      color: #fff;
+      padding: 3px;
+    }
+
+    .playIng {
+      width: 40px;
+      height: 40px;
+      float: right !important;
+      background-image: url('./video.png');
+      background-repeat: no-repeat;
+      background-position: 10px center;
+      background-size: 25px;
+      display: none;
+    }
+
+    .show .playIng {
+      display: inline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    VideoServer | 视频平台
+  </div>
+  <div class="content">
+    <div class="videoView">
+      <div id="video">
+        <canvas id="video-canvas"> </canvas>
+      </div>
+      <div id="video1">
+        <canvas id="video-canvas1"> </canvas>
+      </div>
+    </div>
+
+    <div class="IPCList">
+      <ul id="ipcListUl">
+      </ul>
+    </div>
+  </div>
+  <script src="./plugs/jquery.js"></script>
+  <!-- <script src="https://jsmpeg.com/jsmpeg.min.js"></script> -->
+  <script src="./js/jsmpeg.js"></script>
+  <script>
+    let basUrl = 'localhost';
+    const rtspData = [
+      {
+          url: 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4', // RSTP test link
+          port: '1277',
+          type: 'hk',
+          coverSrc: '',
+          canvas: document.getElementById('video-canvas')
+        },
+        // {
+        //   url: 'rtsp://XXX/Streaming/Channels/103',
+        //   port: '2277',
+        //   coverSrc: '',
+        //   canvas: document.getElementById('video-canvas1')
+        // }
+      ]
+
+    $.ajax({
+      url: 'http://' + basUrl + ':8088/startRtspVideo',
+      type: 'post',
+      data: {
+        urls: JSON.stringify(rtspData)
+      },
+      success: function (res) {
+        console.log(res)
+      },
+      error: function (err) {
+        console.log(err)
+      }
+    })
+
+
+    let players = []
+
+    play()
+
+    function play() {
+      players.forEach(item => {
+        if (item) {
+          item.destroy()
+        }
+      })
+      rtspData.forEach(item => {
+        let url = 'ws://' + basUrl + ':' + item.port
+        let player = new JSMpeg.Player(url, {
+          canvas: item.canvas,
+          audio: false,
+          pauseWhenHidden: false,
+          disableGl: true,
+          disableWebAssembly: true
+          // videoBufferSize: 1024 * 1024 * 4
+        })
+        players.push(player)
+      })
+    }
+  </script>
+</body>
+
+</html>
